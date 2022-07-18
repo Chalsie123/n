@@ -1,16 +1,24 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 
 // 定数
 
 const KEY_NOTES = "notes";
 const MAX_NOTE_COUNT = 100;
 
+// プライベート メソッド
+
+const _focusOnTextArea = async () => {
+  await nextTick();
+  textarea.value.focus();
+};
+
 // リアクティブ変数
 
 const isListShow = ref(false);
 const notes = ref(JSON.parse(localStorage.getItem(KEY_NOTES)) || []);
 const selected = ref([]);
+const textarea = ref(null);
 
 // 算出プロパティ
 
@@ -18,6 +26,7 @@ const text = computed({
   get() {
     const id = selected.value[0];
     const note = notes.value.find((x) => x.id === id);
+    _focusOnTextArea();
     return note.text;
   },
   set(newValue) {
@@ -40,9 +49,13 @@ const addNote = () => {
   const newNote = { id, text: "" };
   notes.value = [newNote, ...notes.value].slice(0, MAX_NOTE_COUNT);
   selected.value = [id];
+  _focusOnTextArea();
 };
 
-const toggleList = () => (isListShow.value = !isListShow.value);
+const toggleList = () => {
+  isListShow.value = !isListShow.value;
+  _focusOnTextArea();
+};
 
 // ライフサイクル フック
 
@@ -86,7 +99,7 @@ addNote();
         </div>
 
         <!-- テキスト エリア -->
-        <textarea v-model="text" class="px-2 text w-100" />
+        <textarea ref="textarea" v-model="text" class="px-2 text w-100" />
       </div>
     </v-main>
   </v-app>
